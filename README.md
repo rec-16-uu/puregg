@@ -8,6 +8,8 @@
 - 支持系统：Android 7.0（API 24）及以上
 - 技术栈：WebView 外壳（Java）+ 纯 HTML/CSS/JS 界面（`app/src/main/assets/`）
 
+更新历史见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 功能
 
 - **时间轴**（08:00–22:00，两小时一格）
