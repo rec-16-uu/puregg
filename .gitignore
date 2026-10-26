@@ -13,6 +13,8 @@ keystore.properties
 
 # 构建产物
 *.apk
+!dist/
+!dist/*.apk
 *.jks
 *.keystore
 
