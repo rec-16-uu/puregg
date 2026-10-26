@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>紫色的蛋</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- 顶栏：左标题 / 右「接下来」入口（点开看最近三件 + 重要事件） -->
+<header class="topbar">
+  <div class="tb-left">
+    <span class="brand">紫色的蛋</span>
+    <button class="mini" id="btnDone" title="已完成">✓</button>
+  </div>
+  <button class="cd" id="cdBtn" title="接下来"><span id="countdown">…</span><i class="cde">›</i></button>
+</header>
+
+<!-- 日期横条 -->
+<div class="strip" id="strip"></div>
+
+<!-- 选中日期 + 前一天 / 今天 / 后一天 -->
+<div class="chips nav">
+  <button class="navbtn" id="chipPrev" title="前一天">‹</button>
+  <span class="daysel" id="dayTitle">…</span>
+  <button class="navbtn" id="chipNext" title="后一天">›</button>
+  <button class="chip" id="chipToday">今天</button>
+</div>
+
+<!-- 功能 chips -->
+<div class="chips">
+  <button class="chip" id="chipBacklog">待安排 <b id="backlogN">0</b></button>
+  <button class="chip" id="chipHelp">怎么看</button>
+</div>
+
+<!-- 08:00–22:00 时间轴 -->
+<div class="tl-wrap">
+  <div class="tl-scroll" id="tlScroll">
+    <div class="tl-canvas" id="tlCanvas"></div>
+  </div>
+</div>
+
+<!-- 左下角圆点清单：单点横线任务 / 22–8 点的事 / 没填时间的备忘 -->
+<div class="legend" id="legend" hidden>
+  <div class="lg-head" id="legendHead">圆点清单</div>
+  <div class="lg-body" id="legendBody"></div>
+</div>
+
+<!-- 右下角添加按钮 -->
+<button class="fab" id="fab" title="添加任务">+</button>
+
+<!-- 遮罩 -->
+<div class="mask" id="mask" hidden></div>
+
+<!-- 添加 / 编辑 -->
+<section class="sheet" id="sheetEdit" hidden>
+  <div class="sh-head">
+    <span id="editTitle">新任务</span>
+    <button class="x" data-close>×</button>
+  </div>
+  <div class="sh-body">
+    <input class="big" id="fTitle" placeholder="要做什么？" autocomplete="off">
+    <div class="more" id="moreBox">
+      <label class="row"><span>备注</span><input id="fNote" placeholder="要带什么 / 提醒自己"></label>
+      <div class="row split"><span>开始</span>
+        <input type="date" id="fStartDate" readonly title="点一下自己的日历选"><input type="time" id="fStartTime" readonly title="点一下拨轮选（24 小时制）">
+        <button class="mini2" id="btnNow">现在</button>
+      </div>
+      <div class="row split"><span>结束</span>
+        <input type="date" id="fEndDate" readonly title="点一下自己的日历选"><input type="time" id="fEndTime" readonly title="点一下拨轮选（24 小时制）">
+        <button class="mini2" id="btnClearEnd">清空</button>
+      </div>
+      <div class="row"><span>提醒</span>
+        <button type="button" class="pick" id="btnRemind"><b id="remindText">不提醒</b><i class="caret">›</i></button>
+        <input type="hidden" id="fRemind" value="">
+      </div>
+      <div class="row"><span>重要</span>
+        <button type="button" class="switch" id="btnStar" aria-checked="false"><i></i></button>
+        <em class="rowhint" id="starText">普通任务</em>
+      </div>
+      <div class="row"><span>颜色</span>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <p class="hint" id="timeHint"></p>
+    </div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn primary" id="btnSave">保存</button>
+  </div>
+</section>
+
+<!-- 详情 -->
+<section class="sheet" id="sheetDetail" hidden>
+  <div class="sh-head">
+    <span id="dtTitle">任务</span>
+    <button class="x" data-close>×</button>
+  </div>
+  <div class="sh-body" id="dtBody"></div>
+  <div class="sh-foot">
+    <button class="btn primary" id="btnComplete">✓ 完成</button>
+    <button class="btn" id="btnEdit2">编辑</button>
+    <button class="btn danger" id="btnDelete">删除</button>
+  </div>
+</section>
+
+<!-- 待安排 -->
+<section class="sheet" id="sheetBacklog" hidden>
+  <div class="sh-head">
+    <span>待安排<em class="hd-sub">没填时间的备忘</em></span>
+    <button class="x" data-close>×</button>
+  </div>
+  <div class="sh-body" id="bkBody"></div>
+</section>
+
+<!-- 已完成 -->
+<section class="sheet" id="sheetDone" hidden>
+  <div class="sh-head">
+    <span>已完成</span>
+    <button class="x" data-close>×</button>
+  </div>
+  <div class="sh-body" id="dnBody"></div>
+  <div class="sh-foot">
+    <button class="btn" id="btnClearDone">清空已完成</button>
+  </div>
+  <div class="sh-foot">
+    <button class="btn" id="btnExport">导出备份</button>
+    <button class="btn" id="btnImport">导入备份</button>
+  </div>
+</section>
+
+<!-- 右上角点开：接下来三件 + 重要事件 -->
+<section class="sheet" id="sheetNow" hidden>
+  <div class="sh-head"><span>接下来</span><button class="x" data-close>×</button></div>
+  <div class="sh-body now-body">
+    <h4 class="sec">最近三件</h4>
+    <div class="rows" id="nowNext"></div>
+    <h4 class="sec">重要事件</h4>
+    <div class="rows" id="nowStar"></div>
+  </div>
+</section>
+
+<!-- 提醒：常用档位 + 自定义（分钟 / 小时 / 天） -->
+<section class="sheet" id="sheetRemind" hidden>
+  <div class="sh-head"><span>提醒</span><button class="x" data-close>×</button></div>
+  <div class="sh-body">
+    <div class="rp-prev" id="rpPrev">不提醒</div>
+    <div class="opts" id="remindOpts"></div>
+    <h4 class="sec">自定义</h4>
+    <div class="rp-row">
+      <button class="step" id="rmMinus" title="少一点">−</button>
+      <input class="rp-num" id="rmNum" type="number" inputmode="numeric" min="1" max="999" value="30">
+      <button class="step" id="rmPlus" title="多一点">+</button>
+      <div class="seg" id="rmUnit"></div>
+    </div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn" id="rmCancel">取消</button>
+    <button class="btn primary" id="rmApply">用这个</button>
+  </div>
+</section>
+
+<!-- 选日期：自己的日历（替掉手机自带的日期弹窗） -->
+<section class="sheet" id="sheetDate" hidden>
+  <div class="sh-head"><span id="dpTitle">选择日期</span><button class="x" data-close>×</button></div>
+  <div class="sh-body dp-body">
+    <div class="dp-head"><em id="dpYear">2026年</em><b id="dpPick">9月25日 周五</b></div>
+    <div class="dp-nav">
+      <button id="dpPrev" title="上个月">‹</button>
+      <span id="dpMonth">2026年9月</span>
+      <button id="dpNext" title="下个月">›</button>
+    </div>
+    <div class="dp-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+    <div class="dp-grid" id="dpGrid"></div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn" id="dpClear">清除</button>
+    <button class="btn" id="dpToday">今天</button>
+    <button class="btn primary" id="dpOk">确定</button>
+  </div>
+</section>
+
+<!-- 时间选择：24 小时制拨轮（替掉手机自带那个表盘弹窗） -->
+<section class="sheet" id="sheetTime" hidden>
+  <div class="sh-head"><span id="tpTitle">选择时间</span><button class="x" data-close>×</button></div>
+  <div class="sh-body tp-body">
+    <div class="tp-prev"><b id="tpH">08</b><i>:</i><b id="tpM">00</b></div>
+    <div class="tp-wheels">
+      <div class="tp-band"></div>
+      <div class="tp-col" id="tpHour"></div>
+      <div class="tp-col" id="tpMin"></div>
+    </div>
+    <div class="tp-units"><span>时</span><span>分</span></div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn" id="tpClear">清除</button>
+    <button class="btn" id="tpNow">现在</button>
+    <button class="btn primary" id="tpOk">确定</button>
+  </div>
+</section>
+
+<!-- 说明 -->
+<section class="sheet" id="sheetHelp" hidden>
+  <div class="sh-head"><span>怎么看</span><button class="x" data-close>×</button></div>
+  <div class="sh-body help">
+    <p><b>看哪天</b>点日期条切换，或用 ‹ / 今天 / › 翻。</p>
+    <p><b>时间轴</b>只画 08:00–22:00，两小时一格。</p>
+    <p><b>方块</b>有开始、有结束，高度就是时长。</p>
+    <p><b>横线</b>只有开始或只有结束，同时进左下角清单。</p>
+    <p><b>夜间</b>22:00–08:00 不进时间轴，收在左下角。</p>
+    <p><b>待安排</b>起止都没填，当备忘放着。</p>
+    <p><b>重叠</b>保留整宽，逐层向右错开，文字不压。</p>
+    <p><b>选时间</b>24 小时制拨轮，上下拨，点确定写入。</p>
+    <p><b>选日期</b>自建月历，有安排的日子带小点。</p>
+    <p><b>日期条</b>圆点数 = 那天还没做完的事。</p>
+    <p><b>倒计时</b>右上角，正在做的事显示还剩多久。</p>
+    <p class="ver" id="verLine"></p>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="store.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

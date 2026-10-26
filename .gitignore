@@ -1,0 +1,23 @@
+# Gradle / Android 构建产物
+.gradle/
+build/
+app/build/
+local.properties
+
+# 本地工具链（体积大，按需下载）
+.toolchain/
+
+# 签名材料（绝不提交）
+keystore/
+keystore.properties
+
+# 构建产物
+*.apk
+*.jks
+*.keystore
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
